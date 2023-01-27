@@ -1,3 +1,4 @@
+
 services:
   web-app:
     build:
@@ -14,13 +15,12 @@ services:
 
     command: >
       sh -c "python manage.py runserver 0.0.0.0:8000"
-
     depends_on:
       - database
 
   database:
-    image: postgres:14.6-alpine
-    environment:
-      - POSTGRES_DB=dbname
-      - POSTGRES_USER-dbuser
-      - POSTGRES_PASSWORD=pass
+   image: postgres:14.6-alpine
+   environment:
+     - POSTGRES_DB=dbname
+     - POSTGRES_USER=dbuser
+     - POSTGRES_PASSWORD=pass
