@@ -24,7 +24,7 @@ class Plan(models.Model):
     discount_percent = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(100)])
 
     def __str__(self):
-        return f"Plan {self.plan_type}"
+        return f"Plan: {self.plan_type}"
 
 
 class Subscription(models.Model):
@@ -32,3 +32,6 @@ class Subscription(models.Model):
     client = models.ForeignKey(Client, related_name='subscription', on_delete=models.PROTECT)
     service = models.ForeignKey(Service, related_name='subscription', on_delete=models.PROTECT)
     plan = models.ForeignKey(Plan, related_name='subscription', on_delete=models.PROTECT)
+
+    def __str__(self):
+        return f"{self.client}, service: {self.service}, {self.plan}"
