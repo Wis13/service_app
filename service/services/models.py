@@ -10,6 +10,16 @@ class Service(models.Model):
     name = models.CharField(max_length=50)
     full_price = models.PositiveSmallIntegerField()
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__full_price = self.full_price
+
+    def save(self, *args, **kwargs):
+        if self.full_price != self.__full_price:
+            for subscription in self.subscriptions.all():
+                set_price.delay(subscription.id)
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.name} service"
 
@@ -24,21 +34,26 @@ class Plan(models.Model):
     plan_type = models.CharField(choices=PLAN_TYPES, max_length=10)
     discount_percent = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(100)])
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__discount_percent = self.discount_percent
+
+    def save(self, *args, **kwargs):
+        if self.discount_percent != self.__discount_percent:
+            for subscription in self.subscriptions.all():
+                set_price.delay(subscription.id)
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"Plan: {self.plan_type}"
 
 
 class Subscription(models.Model):
 
-    client = models.ForeignKey(Client, related_name='subscription', on_delete=models.PROTECT)
-    service = models.ForeignKey(Service, related_name='subscription', on_delete=models.PROTECT)
-    plan = models.ForeignKey(Plan, related_name='subscription', on_delete=models.PROTECT)
+    client = models.ForeignKey(Client, related_name='subscriptions', on_delete=models.PROTECT)
+    service = models.ForeignKey(Service, related_name='subscriptions', on_delete=models.PROTECT)
+    plan = models.ForeignKey(Plan, related_name='subscriptions', on_delete=models.PROTECT)
     price = models.PositiveSmallIntegerField(default=0)
-
-    def save(self, *args, save_mode=True, **kwargs):
-        if save_mode:
-            set_price.delay(self.id)
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.client}, service: {self.service}, {self.plan}"
